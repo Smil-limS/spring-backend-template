@@ -1,0 +1,118 @@
+plugins {
+    id 'java'
+    id 'jacoco'
+    id 'org.springframework.boot' version '4.1.1'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id 'com.diffplug.spotless' version '8.10.4'
+}
+
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+description = 'Spring Boot 백엔드 프로젝트 템플릿'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Web · Validation
+    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    // Persistence
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    runtimeOnly 'org.postgresql:postgresql'
+
+    // Monitoring (헬스 체크: /actuator/health)
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+    // local 프로필로 bootRun 하면 compose.yaml 의 컨테이너를 자동으로 띄움
+    developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
+
+    // Lombok · Configuration Processor
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+
+    // Test (통합 테스트는 Testcontainers — Docker 필요)
+    testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-validation-test'
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+    testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
+    testImplementation 'org.testcontainers:testcontainers-postgresql'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testCompileOnly 'org.projectlombok:lombok'
+    testAnnotationProcessor 'org.projectlombok:lombok'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+    finalizedBy 'jacocoTestReport'
+}
+
+// ── 코드 포매터 (Google Java Format) ───────────────────────────
+// ./gradlew spotlessApply  : 자동 정리 (pre-commit 훅이 커밋 전에 실행)
+// ./gradlew spotlessCheck  : 검사만 (./gradlew build 에 포함 → CI에서 실패 처리)
+spotless {
+    java {
+        target 'src/**/*.java'
+        googleJavaFormat()
+        importOrder()
+        removeUnusedImports()
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+}
+
+// ── 테스트 커버리지 (JaCoCo) ───────────────────────────────────
+// 리포트: build/reports/jacoco/test/html/index.html
+def coverageExcludes = [
+    '**/*Application*',
+    '**/config/**',
+    '**/*Request*',
+    '**/*Response*',
+    '**/*Dto*',
+    '**/Q*',
+]
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true
+        html.required = true
+    }
+    classDirectories.setFrom(files(classDirectories.files.collect {
+        fileTree(dir: it, exclude: coverageExcludes)
+    }))
+}
+
+// 목표 커버리지 80% (라인 기준).
+// 초반엔 경고만(PR 코멘트), 기능이 쌓이면 `./gradlew build -PenforceCoverage` 로 강제.
+jacocoTestCoverageVerification {
+    dependsOn jacocoTestReport
+    classDirectories.setFrom(jacocoTestReport.classDirectories)
+    violationRules {
+        rule {
+            limit {
+                counter = 'LINE'
+                value = 'COVEREDRATIO'
+                minimum = 0.80
+            }
+        }
+    }
+}
+
+if (project.hasProperty('enforceCoverage')) {
+    tasks.named('check') { dependsOn jacocoTestCoverageVerification }
+}

@@ -1,0 +1,24 @@
+# 모든 환경 공통 설정. 환경별 값은 application-{local,prod}.yml / 테스트는 application-test.yml
+spring:
+  application:
+    name: app
+  profiles:
+    default: local # 프로필을 지정하지 않으면 local 로 실행
+
+  jpa:
+    open-in-view: false
+    properties:
+      hibernate:
+        default_batch_fetch_size: 100
+        jdbc:
+          time_zone: Asia/Seoul
+
+server:
+  port: 8080
+  forward-headers-strategy: native
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info

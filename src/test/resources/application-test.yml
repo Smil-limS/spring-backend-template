@@ -1,0 +1,9 @@
+# 테스트: Testcontainers 가 PostgreSQL 접속 정보를 주입한다. (Docker 실행 필요)
+spring:
+  docker:
+    compose:
+      enabled: false
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false

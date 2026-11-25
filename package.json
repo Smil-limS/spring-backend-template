@@ -1,0 +1,12 @@
+{
+  "name": "app-dev-tools",
+  "private": true,
+  "description": "커밋 컨벤션 검사(commitlint)와 Git 훅 설치용. 애플리케이션 코드와는 무관합니다.",
+  "scripts": {
+    "prepare": "git config core.hooksPath .githooks && chmod +x .githooks/* || true"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "19.8.1",
+    "@commitlint/config-conventional": "19.8.1"
+  }
+}

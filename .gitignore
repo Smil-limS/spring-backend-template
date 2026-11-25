@@ -1,0 +1,36 @@
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Node (commitlint)
+node_modules/
+
+# IntelliJ
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# VS Code
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+*.pem
+
+# Logs
+logs/
+*.log
+
+# 발표 자료 · 영상 등 대용량 산출물은 저장소 밖(노션/드라이브)에 둡니다
+*.mp4
+*.mov
+*.zip
